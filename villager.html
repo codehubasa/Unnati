@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-i18n-key="title">Unnati - Citizen Report Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* --- 1. CSS Variables for Theming --- */
+        :root {
+            --color-primary: #5cb85c; /* Green - Villager Accent */
+            --color-secondary: #007bff;
+            --color-star: #ffc107;
+            --bg-primary: #f4f7f6;
+            --bg-secondary: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #6c757d;
+            --border-color: #e9ecef;
+            --success-bg: #d4edda;
+            --success-text: #155724;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        [data-theme="dark"] {
+            --color-primary: #4CAF50; /* Darker green */
+            --color-secondary: #6cb6ff; /* Lighter blue for visibility */
+            --color-star: #ffc107;
+            --bg-primary: #1e1e2d; /* Dark background */
+            --bg-secondary: #2a2a3e; /* Dark card/form background */
+            --text-primary: #ffffff;
+            --text-secondary: #9999a9;
+            --border-color: #3c3c50;
+            --success-bg: #2a3a2a;
+            --success-text: #5cb85c;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        /* --- 2. Base Styles and Layout --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { 
+            background-color: var(--bg-primary); 
+            color: var(--text-primary); 
+            transition: background-color 0.3s;
+        }
+
+        header {
+            background-color: var(--color-primary);
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .main-layout {
+            display: grid;
+            grid-template-columns: 2fr 1.5fr; 
+            gap: 30px;
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .container, .feedback-section { padding: 20px; }
+        .page-title { font-size: 2rem; margin-bottom: 25px; color: var(--color-primary); }
+
+        /* --- 3. Form Styling (LEFT SECTION) --- */
+        #reportForm { background: var(--bg-secondary); padding: 30px; border-radius: 10px; box-shadow: var(--shadow); }
+        #reportForm label { display: block; margin-top: 15px; margin-bottom: 5px; font-weight: 600; color: var(--text-primary); }
+        #reportForm select, #reportForm textarea, #reportForm input[type="file"] {
+            width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;
+            background-color: var(--bg-primary); color: var(--text-primary); margin-bottom: 15px;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        #reportForm textarea { resize: vertical; height: 100px; }
+        
+        /* SC Certificate Upload Section Styling */
+        .sc-check-section {
+            border: 1px dashed var(--color-secondary); /* Highlight for priority feature */
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            background-color: var(--bg-primary);
+        }
+        .sc-check-section label {
+            display: flex;
+            align-items: center;
+            margin-top: 0;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        .sc-check-section input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            margin-bottom: 0;
+            accent-color: var(--color-secondary);
+        }
+        .sc-upload-box {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+            display: none; /* Hidden by default */
+        }
+        .sc-upload-box input[type="file"] {
+             margin-bottom: 0;
+        }
+
+        #reportForm button[type="submit"] {
+            background-color: var(--color-primary); color: white; padding: 12px 20px; border: none;
+            border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 1.1rem;
+            width: 100%; margin-top: 20px; transition: background-color 0.2s;
+        }
+        #reportForm button[type="submit"]:hover { background-color: #4CAF50; }
+
+        .success-message { 
+            display: none; background: var(--success-bg); color: var(--success-text); 
+            padding: 15px; border-radius: 8px; margin-top: 20px; font-weight: 600;
+            border: 1px solid var(--success-text);
+        }
+
+        /* --- 4. Sidebar Controls (HEADER) --- */
+        .header-controls { display: flex; gap: 10px; align-items: center; }
+        .header-controls button { 
+            background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); 
+            padding: 8px 12px; border-radius: 5px; cursor: pointer; transition: background-color 0.2s, color 0.2s; 
+            font-weight: 600;
+        }
+        .header-controls button:hover { background-color: var(--border-color); }
+        .header-controls button.active { background-color: var(--color-secondary); border-color: var(--color-secondary); color: white; }
+        .header-controls #theme-toggle { padding: 8px; }
+        
+        /* --- 5. Feedback Section (RIGHT SECTION) --- */
+        .feedback-section h2 { font-size: 1.5rem; margin-bottom: 20px; color: var(--color-secondary); }
+        .feedback-card { background: var(--bg-secondary); padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: var(--shadow); border-left: 5px solid var(--color-primary); }
+        .feedback-card h3 { color: var(--text-primary); margin-bottom: 5px; }
+        .feedback-card h4 { color: var(--color-primary); font-size: 1rem; margin-bottom: 10px; }
+        .feedback-card .time { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px; }
+        .feedback-card img { width: 100%; height: 180px; object-fit: cover; border-radius: 6px; margin-bottom: 15px; }
+        .feedback-card .desc { margin-bottom: 15px; line-height: 1.6; }
+        
+        /* Star Rating */
+        .rating { margin-bottom: 10px; }
+        .rating .star { 
+            background: none; border: none; font-size: 1.5rem; color: var(--text-secondary); 
+            cursor: pointer; transition: color 0.2s; 
+        }
+        .rating .star.rated { color: var(--color-star); }
+        .feedback-box { width: 100%; height: 60px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; margin-top: 10px; background-color: var(--bg-primary); color: var(--text-primary); }
+        .feedback-card button { 
+            background-color: var(--color-secondary); color: white; padding: 8px 15px; 
+            border: none; border-radius: 6px; margin-top: 10px; cursor: pointer; 
+            transition: background-color 0.2s; font-weight: 600;
+        }
+        .feedback-card button:hover { background-color: #0056b3; }
+
+        /* --- 6. Innovative Features --- */
+        
+        /* Impact Score Section */
+        .impact-score-card { background: var(--bg-secondary); padding: 20px; border-radius: 10px; margin-top: 25px; box-shadow: var(--shadow); border: 2px solid var(--color-star); text-align: center; }
+        .impact-score-card h2 { color: var(--color-star); font-size: 1.5rem; margin-bottom: 10px; }
+        .score-value { font-size: 3rem; font-weight: 700; color: var(--color-primary); }
+        .score-text { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 15px; }
+        .score-progress-bar { height: 10px; background: var(--border-color); border-radius: 5px; margin-top: 10px; }
+        .score-progress { height: 100%; width: 65%; /* Demo value */ background: var(--color-primary); border-radius: 5px; transition: width 1s ease-in-out; }
+
+        /* Chatbot Button and Window (Same as before) */
+        .chatbot-toggle { 
+            position: fixed; bottom: 30px; right: 30px; 
+            background-color: var(--color-secondary); color: white; 
+            width: 60px; height: 60px; border-radius: 50%; border: none; 
+            font-size: 1.5rem; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); 
+            cursor: pointer; z-index: 100; transition: background-color 0.2s;
+        }
+        .chatbot-toggle:hover { background-color: #0056b3; }
+
+        .chatbot-window { 
+            position: fixed; bottom: 100px; right: 30px; width: 350px; height: 450px; 
+            background: var(--bg-secondary); border-radius: 10px; box-shadow: var(--shadow);
+            display: none; flex-direction: column; z-index: 99; border: 1px solid var(--border-color);
+        }
+        .chatbot-header { background: var(--color-secondary); color: white; padding: 10px; border-radius: 10px 10px 0 0; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+        .chatbot-messages { flex-grow: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .chatbot-input { padding: 10px; border-top: 1px solid var(--border-color); display: flex; gap: 5px; }
+        .chatbot-messages p { max-width: 80%; padding: 8px 12px; border-radius: 15px; font-size: 0.9rem; }
+        .user-msg { background: var(--color-secondary); color: white; align-self: flex-end; border-bottom-right-radius: 0; }
+        .bot-msg { background: var(--bg-primary); color: var(--text-primary); align-self: flex-start; border-bottom-left-radius: 0; }
+        .chatbot-input input { flex-grow: 1; padding: 8px; border: 1px solid var(--border-color); border-radius: 20px; background-color: var(--bg-primary); color: var(--text-primary); }
+        .chatbot-input button { background: var(--color-secondary); color: white; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <header>
+        <span data-i18n-key="app-title">Unnati: Citizen Report Hub</span>
+        <div class="header-controls">
+            <button id="en-btn" class="lang-btn active" data-lang="en" onclick="translatePage('en')">EN</button>
+            <button id="hi-btn" class="lang-btn" data-lang="hi" onclick="translatePage('hi')">HI</button>
+            
+            <button id="theme-toggle" onclick="toggleTheme()">
+                <i class="fas fa-sun" id="theme-icon"></i> 
+            </button>
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <div class="container">
+            <h1 class="page-title" data-i18n-key="report-title">Village Report</h1>
+
+            <form id="reportForm">
+                <label for="category" data-i18n-key="label-category">Select Category:</label>
+                <select id="category" required>
+                    <option value="" data-i18n-key="option-select">-- Select a Category --</option>
+                    <option data-i18n-key="opt-education">Education and Schools</option>
+                    <option data-i18n-key="opt-water">Water and Sanitation</option>
+                    <option data-i18n-key="opt-food">Food</option>
+                    <option data-i18n-key="opt-electricity">Electricity</option>
+                    <option data-i18n-key="opt-waste">Waste Management</option>
+                    <option data-i18n-key="opt-roads">Roads</option>
+                    <option data-i18n-key="opt-livelihood">Livelihood</option>
+                    <option data-i18n-key="opt-others">Others</option>
+                </select>
+
+                <label for="description" data-i18n-key="label-description">Describe the Issue:</label>
+                <textarea id="description" placeholder="Write about the issue faced in your village..." data-i18n-placeholder-key="ph-description" required></textarea>
+
+                <label for="media" data-i18n-key="label-media">Upload Photos/Videos (optional):</label>
+                <input type="file" id="media" accept="image/*,video/*" multiple />
+
+                <div class="sc-check-section">
+                    <label>
+                        <input type="checkbox" id="isSCMajority" onchange="toggleSCUpload()" />
+                        <span data-i18n-key="label-sc-check">Request Priority: This concerns an SC Majority area.</span>
+                    </label>
+                    <div class="sc-upload-box" id="scUploadBox">
+                        <label for="scCertificate" data-i18n-key="label-sc-upload">Upload SC Majority Certificate (Required for Priority):</label>
+                        <input type="file" id="scCertificate" accept=".pdf,image/*" />
+                    </div>
+                </div>
+                <button type="submit" data-i18n-key="btn-submit">Submit Report</button>
+            </form>
+
+            <div class="success-message" id="successMsg" data-i18n-key="msg-success">
+                ✅ Your report was submitted successfully! (Demo ID: RPT1099)
+            </div>
+            
+            <div class="impact-score-card">
+                <h2 data-i18n-key="impact-score-title">Citizen Impact Score 🌟</h2>
+                <div class="score-value" id="currentScore">65</div>
+                <p class="score-text" data-i18n-key="score-tagline">Your reports led to 3 project completions this quarter!</p>
+                <p data-i18n-key="score-level">Level: **Active Contributor**</p>
+                <div class="score-progress-bar"><div class="score-progress"></div></div>
+            </div>
+        </div>
+
+        <div class="feedback-section">
+            <h2 data-i18n-key="resolved-title">Recent Resolved Issues</h2>
+
+            <div class="feedback-list">
+                <div class="feedback-card" data-report-id="RPT1024">
+                    <h3>Report ID: #RPT1024</h3>
+                    <h4 data-i18n-key="cat-water">Category: Water and Sanitation</h4>
+                    <p class="time">📅 <span data-i18n-key="reported-time-1">Reported: Oct 5, 2025 | 10:35 AM | Nandigram</span></p>
+                    <img src="https://images.pexels.com/photos/8776927/pexels-photo-8776927.jpeg" alt="Water pump" />
+                    <p class="desc" data-i18n-key="desc-water">Villagers faced irregular water supply. The issue was resolved by installing a new water hand pump and pipeline maintenance.</p>
+
+                    <div class="rating" data-rating="0">
+                        <button type="button" class="star">★</button>
+                        <button type="button" class="star">★</button>
+                        <button type="button" class="star">★</button>
+                        <button type="button" class="star">★</button>
+                        <button type="button" class="star">★</button>
+                    </div>
+
+                    <textarea class="feedback-box" data-i18n-placeholder-key="ph-feedback" placeholder="Write feedback (max 100 words)..."></textarea>
+                    <button class="submit-feedback-btn" data-i18n-key="btn-feedback">Submit Feedback</button>
+                </div>
+
+                <div class="feedback-card" data-report-id="RPT1077">
+                    <h3>Report ID: #RPT1077</h3>
+                    <h4 data-i18n-key="cat-roads">Category: Roads</h4>
+                    <p class="time">📅 <span data-i18n-key="reported-time-2">Reported: Oct 3, 2025 | 04:15 PM | Sikandra</span></p>
+                    <img src="https://images.pexels.com/photos/33634805/pexels-photo-33634805.jpeg" alt="Road repair" />
+                    <p class="desc" data-i18n-key="desc-roads">The village road was severely damaged with potholes, causing vehicle damage and safety hazards. The road has now been resurfaced. **(Project Completed: 7 days)**</p>
+
+                    <div class="rating" data-rating="0">
+                        <button type="button" class="star">★</button>
+                        <button type="button" class="star">★</button>
+                        <button type="button" class="star">★</button>
+                        <button type="button" class="star">★</button>
+                        <button type="button" class="star">★</button>
+                    </div>
+
+                    <textarea class="feedback-box" data-i18n-placeholder-key="ph-feedback" placeholder="Write feedback (max 100 words)..."></textarea>
+                    <button class="submit-feedback-btn" data-i18n-key="btn-feedback">Submit Feedback</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="chatbot-toggle" onclick="toggleChatbot()">
+        <i class="fas fa-comments" id="chat-icon"></i>
+    </button>
+    <div class="chatbot-window" id="chatbotWindow">
+        <div class="chatbot-header">
+            <span data-i18n-key="chat-header">Unnati Sahayak (AI)</span>
+            <button onclick="toggleChatbot()" style="background:none; color:white; border:none; font-size:1.2rem; cursor:pointer;">&times;</button>
+        </div>
+        <div class="chatbot-messages" id="chatbotMessages">
+            <p class="bot-msg" data-i18n-key="chat-welcome">Hello! I am Unnati Sahayak. I can help you check report status or guide you through the reporting process. Type **'Status RPT1024'** or **'Help'**.</p>
+        </div>
+        <div class="chatbot-input">
+            <input type="text" id="chatInput" data-i18n-placeholder-key="ph-chat" placeholder="Ask me anything..." onkeypress="handleChatInput(event)" />
+            <button onclick="sendChatbotMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script>
+        let currentLang = 'en';
+        
+        // --- 1. LOCALIZATION DATA ---
+        const translations = {
+            'en': {
+                'title': 'Unnati - Citizen Report Hub',
+                'app-title': 'Unnati: Citizen Report Hub',
+                'report-title': 'Village Report',
+                'resolved-title': 'Recent Resolved Issues',
+                'label-category': 'Select Category:',
+                'label-description': 'Describe the Issue:',
+                'label-media': 'Upload Photos/Videos (optional):',
+                'label-sc-check': 'Request Priority: This concerns an SC Majority area.',
+                'label-sc-upload': 'Upload SC Majority Certificate (Required for Priority):',
+                'btn-submit': 'Submit Report',
+                'msg-success': '✅ Your report was submitted successfully! (Demo ID: RPT1099)',
+                'ph-description': 'Write about the issue faced in your village...',
+                'ph-feedback': 'Write feedback (max 100 words)...',
+                'btn-feedback': 'Submit Feedback',
+                'opt-education': 'Education and Schools',
+                'opt-water': 'Water and Sanitation',
+                'opt-food': 'Food',
+                'opt-electricity': 'Electricity',
+                'opt-waste': 'Waste Management',
+                'opt-roads': 'Roads',
+                'opt-livelihood': 'Livelihood',
+                'opt-others': 'Others',
+                'option-select': '-- Select a Category --',
+                'reported-time-1': 'Reported: Oct 5, 2025 | 10:35 AM | Nandigram',
+                'reported-time-2': 'Reported: Oct 3, 2025 | 04:15 PM | Sikandra',
+                'cat-water': 'Category: Water and Sanitation',
+                'cat-roads': 'Category: Roads',
+                'desc-water': 'Villagers faced irregular water supply. The issue was resolved by installing a new water hand pump and pipeline maintenance.',
+                'desc-roads': 'The village road was severely damaged with potholes, causing vehicle damage and safety hazards. The road has now been resurfaced. **(Project Completed: 7 days)**',
+                'impact-score-title': 'Citizen Impact Score 🌟',
+                'score-tagline': 'Your reports led to 3 project completions this quarter!',
+                'score-level': 'Level: **Active Contributor**',
+                'chat-header': 'Unnati Sahayak (AI)',
+                'chat-welcome': "Hello! I am Unnati Sahayak. I can help you check report status or guide you through the reporting process. Type **'Status RPT1024'** or **'Help'**.",
+                'ph-chat': 'Ask me anything...',
+                'chat-help': "I can process the following commands: 1) **Status [ReportID]** e.g., 'Status RPT1024' to check progress. 2) **Track Roads** to get information on road repairs. 3) **Help** to see this menu again.",
+                'chat-status-1024': "Report RPT1024 (Water) is **RESOLVED**. Feedback is now open. Resolution time: 5 days.",
+                'chat-track-road': "The Road repair project for Main Street is currently in the **Tendering Phase**. Expected start date: Nov 15, 2025.",
+                'alert-thanks': "✅ Thank you for your feedback!",
+                'alert-sc-required': 'Please upload the SC Majority Certificate to request priority status.',
+            },
+            'hi': {
+                'title': 'उन्नति - नागरिक रिपोर्ट केंद्र',
+                'app-title': 'उन्नति: नागरिक रिपोर्ट केंद्र',
+                'report-title': 'ग्राम रिपोर्ट',
+                'resolved-title': 'हाल ही में हल किए गए मुद्दे',
+                'label-category': 'श्रेणी चुनें:',
+                'label-description': 'मुद्दे का विवरण दें:',
+                'label-media': 'फ़ोटो/वीडियो अपलोड करें (वैकल्पिक):',
+                'label-sc-check': 'प्राथमिकता का अनुरोध करें: यह अनुसूचित जाति बहुल क्षेत्र से संबंधित है।',
+                'label-sc-upload': 'अनुसूचित जाति बहुल प्रमाण पत्र अपलोड करें (प्राथमिकता के लिए आवश्यक):',
+                'btn-submit': 'रिपोर्ट सबमिट करें',
+                'msg-success': '✅ आपकी रिपोर्ट सफलतापूर्वक सबमिट हो गई है! (डेमो आईडी: RPT1099)',
+                'ph-description': 'अपने गांव में आई समस्या के बारे में लिखें...',
+                'ph-feedback': 'प्रतिक्रिया लिखें (अधिकतम 100 शब्द)...',
+                'btn-feedback': 'प्रतिक्रिया सबमिट करें',
+                'opt-education': 'शिक्षा और स्कूल',
+                'opt-water': 'जल और स्वच्छता',
+                'opt-food': 'खाद्य',
+                'opt-electricity': 'बिजली',
+                'opt-waste': 'अपशिष्ट प्रबंधन',
+                'opt-roads': 'सड़कें',
+                'opt-livelihood': 'आजीविका',
+                'opt-others': 'अन्य',
+                'option-select': '-- एक श्रेणी चुनें --',
+                'reported-time-1': 'रिपोर्ट किया गया: 5 अक्टूबर, 2025 | 10:35 पूर्वाह्न | नंदीग्राम',
+                'reported-time-2': 'रिपोर्ट किया गया: 3 अक्टूबर, 2025 | 04:15 अपराह्न | सिकंदरा',
+                'cat-water': 'श्रेणी: जल और स्वच्छता',
+                'cat-roads': 'श्रेणी: सड़कें',
+                'desc-water': 'ग्रामीणों को अनियमित जल आपूर्ति का सामना करना पड़ा। नए हैंडपंप और पाइपलाइन रखरखाव से समस्या हल हो गई।',
+                'desc-roads': 'गांव की सड़क पर गड्ढे होने के कारण वाहनों को नुकसान हो रहा था और सुरक्षा का खतरा बढ़ गया था। अब सड़क को फिर से बनाया गया है। **(परियोजना पूर्ण: 7 दिन)**',
+                'impact-score-title': 'नागरिक प्रभाव स्कोर 🌟',
+                'score-tagline': 'आपकी रिपोर्ट से इस तिमाही में 3 परियोजनाएं पूरी हुईं!',
+                'score-level': 'स्तर: **सक्रिय योगदानकर्ता**',
+                'chat-header': 'उन्नति सहायक (AI)',
+                'chat-welcome': "नमस्ते! मैं उन्नति सहायक हूँ। मैं आपको रिपोर्ट की स्थिति जांचने या रिपोर्टिंग प्रक्रिया में मार्गदर्शन करने में मदद कर सकता हूँ। टाइप करें **'Status RPT1024'** या **'Help'**।",
+                'ph-chat': 'मुझसे कुछ भी पूछें...',
+                'chat-help': "मैं निम्नलिखित कमांड्स को संसाधित कर सकता हूँ: 1) **स्थिति [रिपोर्टआईडी]** उदा. 'Status RPT1024' प्रगति जांचने के लिए। 2) **ट्रैक सड़कें** सड़क मरम्मत की जानकारी पाने के लिए। 3) **सहायता** इस मेनू को फिर से देखने के लिए।",
+                'chat-status-1024': "रिपोर्ट RPT1024 (जल) **हल हो गई है**। प्रतिक्रिया अब खुली है। समाधान का समय: 5 दिन।",
+                'chat-track-road': "मुख्य सड़क की मरम्मत परियोजना वर्तमान में **टेंडरिंग चरण** में है। अपेक्षित शुरुआत तिथि: 15 नवंबर, 2025।",
+                'alert-thanks': "✅ आपकी प्रतिक्रिया के लिए धन्यवाद!",
+                'alert-sc-required': 'प्राथमिकता की स्थिति का अनुरोध करने के लिए कृपया अनुसूचित जाति बहुल प्रमाण पत्र अपलोड करें।',
+            }
+        };
+
+        // --- 2. LANGUAGE AND THEME LOGIC ---
+
+        function translatePage(lang) {
+            currentLang = lang;
+            const currentTranslation = translations[lang];
+
+            // Update all text content and placeholders
+            document.querySelectorAll('[data-i18n-key]').forEach(element => {
+                const key = element.getAttribute('data-i18n-key');
+                if (currentTranslation[key]) {
+                    if (element.classList.contains('desc') || element.parentNode.classList.contains('chatbot-messages')) {
+                        element.innerHTML = currentTranslation[key].replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    } else {
+                        element.textContent = currentTranslation[key];
+                    }
+                }
+            });
+
+            document.querySelectorAll('select option[data-i18n-key]').forEach(option => {
+                const key = option.getAttribute('data-i18n-key');
+                if (currentTranslation[key]) {
+                    option.textContent = currentTranslation[key];
+                }
+            });
+
+            document.querySelectorAll('[data-i18n-placeholder-key]').forEach(input => {
+                const key = input.getAttribute('data-i18n-placeholder-key');
+                if (currentTranslation[key]) {
+                    input.setAttribute('placeholder', currentTranslation[key]);
+                }
+            });
+
+            // Update language button active state
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-lang') === lang) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-theme', newTheme);
+            icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        // --- 3. SC CERTIFICATE UPLOAD TOGGLE ---
+        function toggleSCUpload() {
+            const checkbox = document.getElementById('isSCMajority');
+            const uploadBox = document.getElementById('scUploadBox');
+            
+            if (checkbox.checked) {
+                uploadBox.style.display = 'block';
+            } else {
+                uploadBox.style.display = 'none';
+                // Optional: clear file input if unchecked
+                document.getElementById('scCertificate').value = '';
+            }
+        }
+
+
+        // --- 4. FORM SUBMISSION & INNOVATION LOGIC ---
+        document.getElementById('reportForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const category = document.getElementById('category').value;
+            const description = document.getElementById('description').value;
+            const isSC = document.getElementById('isSCMajority').checked;
+            const scFile = document.getElementById('scCertificate').files[0];
+
+            // Primary Validation: Category and Description
+            if (!category || !description) {
+                // Should be covered by 'required' attribute, but good safety net
+                alert(currentLang === 'en' ? 'Please select a category and describe the issue.' : 'कृपया एक श्रेणी चुनें और मुद्दे का वर्णन करें।');
+                return;
+            }
+
+            // SC Certificate Validation: Compulsory only if the checkbox is checked
+            if (isSC && !scFile) {
+                alert(translations[currentLang]['alert-sc-required']);
+                return;
+            }
+
+            // --- SUBMISSION LOGIC ---
+            
+            // Simulate Submission
+            console.log(`Report submitted: ${category} (SC Priority: ${isSC})`);
+            if(isSC) console.log(`SC Certificate File: ${scFile ? scFile.name : 'N/A'}`);
+            
+            // Show Success Message
+            const successMsg = document.getElementById('successMsg');
+            successMsg.style.display = 'block';
+            
+            // Clear Form
+            this.reset();
+            document.getElementById('scUploadBox').style.display = 'none'; // Hide upload box on reset
+            
+            // Hide success message after 5 seconds
+            setTimeout(() => { successMsg.style.display = 'none'; }, 5000);
+
+            // --- HACKATHON INNOVATION: UPDATE IMPACT SCORE (Demo) ---
+            const currentScoreElement = document.getElementById('currentScore');
+            let currentScore = parseInt(currentScoreElement.textContent);
+            currentScore += 5; 
+            currentScoreElement.textContent = currentScore;
+            document.querySelector('.score-progress').style.width = `${currentScore > 100 ? 100 : currentScore}%`;
+            
+            if (currentScore >= 70) {
+                document.querySelector('[data-i18n-key="score-level"]').innerHTML = (currentLang === 'en' ? 'Level: **Community Leader**' : 'स्तर: **सामुदायिक नेता**');
+            }
+        });
+
+        // --- 5. RATING AND FEEDBACK ---
+        document.querySelectorAll('.feedback-card').forEach(card => {
+            const stars = card.querySelectorAll('.star');
+            const submitBtn = card.querySelector('.submit-feedback-btn');
+
+            // Rating functionality
+            stars.forEach((star, index) => {
+                star.addEventListener('click', () => {
+                    stars.forEach((s, i) => {
+                        s.classList.toggle('rated', i <= index);
+                    });
+                    card.setAttribute('data-rating', index + 1);
+                });
+            });
+
+            // Feedback submission
+            submitBtn.addEventListener('click', () => {
+                const rating = card.getAttribute('data-rating');
+                const feedbackText = card.querySelector('.feedback-box').value.trim();
+                
+                if (rating === '0' && feedbackText === '') {
+                    alert(currentLang === 'en' ? 'Please provide a rating or some feedback before submitting.' : 'कृपया सबमिट करने से पहले एक रेटिंग या कुछ प्रतिक्रिया प्रदान करें।');
+                    return;
+                }
+                
+                alert(translations[currentLang]['alert-thanks']);
+                
+                // Disable card to prevent resubmission (demo)
+                card.style.opacity = '0.7';
+                card.querySelector('.feedback-box').disabled = true;
+                submitBtn.disabled = true;
+                stars.forEach(s => s.disabled = true);
+            });
+        });
+        
+        // --- 6. CHATBOT DEMO LOGIC ---
+        function toggleChatbot() {
+            const window = document.getElementById('chatbotWindow');
+            const icon = document.getElementById('chat-icon');
+            const isVisible = window.style.display === 'flex';
+            window.style.display = isVisible ? 'none' : 'flex';
+            icon.className = isVisible ? 'fas fa-times' : 'fas fa-comments';
+        }
+
+        function handleChatInput(event) {
+            if (event.key === 'Enter') {
+                sendChatbotMessage();
+            }
+        }
+
+        function sendChatbotMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            const messagesContainer = document.getElementById('chatbotMessages');
+            
+            if (message === '') return;
+
+            // Display user message
+            const userMsg = document.createElement('p');
+            userMsg.className = 'user-msg';
+            userMsg.textContent = message;
+            messagesContainer.appendChild(userMsg);
+            
+            // Clear input and scroll down
+            input.value = '';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // --- BOT RESPONSE LOGIC (Demo) ---
+            let botResponse = '';
+            const lowerCaseMsg = message.toLowerCase();
+
+            if (lowerCaseMsg.includes('status rpt1024')) {
+                botResponse = translations[currentLang]['chat-status-1024'];
+            } else if (lowerCaseMsg.includes('track roads') || lowerCaseMsg.includes('track road')) {
+                botResponse = translations[currentLang]['chat-track-road'];
+            } else if (lowerCaseMsg.includes('help')) {
+                botResponse = translations[currentLang]['chat-help'];
+            } else {
+                botResponse = currentLang === 'en' ? "I'm a demo assistant. Please try 'Status RPT1024' or 'Help'." : "मैं एक डेमो सहायक हूँ। कृपया 'Status RPT1024' या 'Help' आज़माएँ।";
+            }
+            
+            setTimeout(() => {
+                const botMsg = document.createElement('p');
+                botMsg.className = 'bot-msg';
+                botMsg.innerHTML = botResponse.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); 
+                messagesContainer.appendChild(botMsg);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 800);
+        }
+
+        // --- 7. INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            translatePage(currentLang);
+        });
+    </script>
+</body>
+</html>

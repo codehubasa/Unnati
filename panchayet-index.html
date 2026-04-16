@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gram Panchayat Admin - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* --- CSS Variables for Theming --- */
+        :root {
+            --bg-primary: #1e1e2d;
+            --bg-secondary: #2a2a3e;
+            --bg-card: #2a2a3e;
+            --bg-inbox-item: #3c3c50;
+            --text-primary: #ffffff;
+            --text-secondary: #9999a9;
+            --link-color: #5c62ec; /* Primary Blue/Purple Accent */
+            --border-color: #3c3c50;
+            --chat-user-bg: #4b89dc; /* Chat user bubble color */
+            --chat-bot-bg: #3c3c50;
+        }
+
+        /* --- Light Theme Overrides --- */
+        [data-theme="light"] {
+            --bg-primary: #f4f7f6;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-inbox-item: #f0f3f2;
+            --text-primary: #333333;
+            --text-secondary: #6c757d;
+            --link-color: #007bff;
+            --border-color: #e9ecef;
+            --chat-user-bg: #007bff; 
+            --chat-bot-bg: #e9ecef;
+        }
+
+        /* --- General Reset & Layout --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary); 
+            color: var(--text-primary);
+            font-size: 14px;
+            display: flex;
+            min-height: 100vh;
+            transition: background-color 0.3s;
+            position: relative; 
+            overflow-x: hidden;
+        }
+
+        /* --- Main Content Area --- */
+        .main-content {
+            flex-grow: 1;
+            padding: 20px 40px;
+            overflow-y: auto;
+        }
+
+        /* --- Header & Actions --- */
+        .main-content header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .main-content header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .header-actions button {
+            background: none;
+            border: 1px solid var(--link-color);
+            color: var(--text-primary);
+            font-size: 0.8rem;
+            padding: 5px 10px;
+            margin-left: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .header-actions button.utility-btn {
+            border: none;
+            font-size: 1rem;
+            padding: 5px;
+            color: var(--text-primary);
+        }
+        .header-actions button.utility-btn:hover { background-color: var(--border-color); }
+        .header-actions button.active { background-color: var(--link-color); border-color: var(--link-color); }
+        .header-actions button:hover:not(.utility-btn):not(.active) { background-color: var(--border-color); }
+
+
+        /* --- Status Alert --- */
+        .status-alert {
+            background-color: #4CAF50; 
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            color: white; 
+        }
+
+        .status-alert .icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+            color: #ffc107;
+        }
+
+        .status-alert p {
+            font-weight: 600;
+            font-size: 0.95rem;
+            white-space: pre-wrap; /* Allows line breaks from JS */
+        }
+        
+        /* --- Dashboard Overview (Metrics) --- */
+        .dashboard-overview {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background-color: var(--bg-card);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-card h3 {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .metric-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .metric-card:nth-child(1) .value { color: #f7a01d; } 
+        .metric-card:nth-child(2) .value { color: #5cb85c; } 
+        .metric-card:nth-child(3) .value { color: #4b89dc; } 
+        .metric-card:nth-child(4) .value { color: #f0ad4e; } 
+
+        /* --- Chart Cards --- */
+        .charts-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background-color: var(--bg-card);
+            padding: 20px;
+            border-radius: 10px;
+            min-height: 300px;
+        }
+
+        .chart-card h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+
+        /* --- Inbox Card --- */
+        .inbox-card {
+            background-color: var(--bg-card);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px; 
+        }
+
+        .inbox-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .inbox-header h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-right: 20px;
+        }
+
+        .inbox-tabs button {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 5px 10px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-right: 5px;
+        }
+
+        .inbox-tabs button.active {
+            background-color: var(--border-color);
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .request-item {
+            background-color: var(--bg-inbox-item);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .request-content .action-button {
+            margin-top: 10px;
+        }
+
+        .priority-badge {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .priority-high { background-color: #dc3545; color: white; }
+        .priority-medium { background-color: #ffc107; color: #1e1e2d; }
+        .priority-resolved { background-color: #4b89dc; color: white; }
+
+        .action-button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: opacity 0.2s;
+        }
+        .action-start { background-color: #4b89dc; color: white; }
+        .action-update { background-color: #ffc107; color: #1e1e2d; }
+        .action-mark { background-color: #5cb85c; color: white; }
+        
+        .border-high { border-left-color: #dc3545; }
+        .border-medium { border-left-color: #ffc107; }
+        .border-resolved { border-left-color: #5cb85c; }
+
+        /* --- Rating Panel Styles --- */
+        .rating-panel {
+            background-color: var(--bg-card);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .stars-container {
+            display: flex;
+            gap: 5px;
+            font-size: 2rem;
+            color: #FFC107;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .star {
+            transition: transform 0.1s, color 0.1s;
+        }
+
+        .submit-rating-btn {
+            background-color: var(--link-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* ========================================================================= */
+        /* FLOATING CHAT WIDGET & PANEL */
+        /* ========================================================================= */
+        .floating-chat-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background-color: var(--chat-user-bg); 
+            color: white;
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            font-size: 1.5rem;
+            line-height: 50px;
+            text-align: center;
+            cursor: pointer;
+            z-index: 1000;
+            transition: transform 0.3s, background-color 0.3s;
+        }
+
+        .chatbot-panel {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 350px;
+            height: 450px;
+            background-color: var(--bg-card);
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            
+            /* Initial state: CLOSED */
+            transform: scale(0.5) translateX(100%);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+
+        .chatbot-panel.open {
+            /* Open state */
+            transform: scale(1) translateX(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Hide the floating button when the panel is open */
+        .chatbot-panel.open ~ .floating-chat-btn {
+            display: none;
+        }
+
+
+        .chat-header {
+            background-color: var(--link-color);
+            color: white;
+            padding: 15px;
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        
+        .chat-close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            padding: 10px;
+            overflow-y: auto;
+            background-color: var(--bg-secondary);
+            display: flex; 
+            flex-direction: column; 
+        }
+
+        .chat-message-item {
+            padding: 8px 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            max-width: 85%;
+            white-space: pre-wrap;
+            line-height: 1.3;
+        }
+
+        .chat-message-item.bot {
+            background-color: var(--chat-bot-bg);
+            color: var(--text-primary);
+            align-self: flex-start;
+            margin-right: auto;
+        }
+        
+        .chat-message-item.bot strong {
+            color: var(--link-color);
+        }
+
+        .chat-message-item.user {
+            background-color: var(--chat-user-bg);
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        
+        /* Quick Action Chips */
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border-color);
+        }
+        .quick-action-chip {
+            background-color: var(--link-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s;
+        }
+        .quick-action-chip:hover {
+            background-color: #4b50d3;
+        }
+
+        .chat-input-area {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--bg-card);
+        }
+
+        .chat-input-area input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            margin-right: 10px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .chat-input-area button {
+            background-color: var(--link-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-content">
+        <header>
+            <h1 data-i18n-key="main-title">Gram Panchayat Admin</h1>
+            <div class="header-actions">
+                <button id="en-btn" class="active" data-lang="en">English</button>
+                <button id="hi-btn" data-lang="hi">हिन्दी</button>
+                <button id="theme-toggle" class="utility-btn" onclick="toggleTheme()">
+                    <span id="theme-icon">💡</span>
+                </button>
+                <button onclick="alert('Notifications clicked!')" class="utility-btn">🔔</button>
+                <button onclick="alert('Settings clicked!')" class="utility-btn">⚙️</button>
+            </div>
+        </header>
+
+        <div class="status-alert" id="statusAlert">
+            <span class="icon">🏆</span>
+            <p data-i18n-key="congrats-text">
+                Congratulations! **Adarsh Gram Status Achieved**
+                Your Panchayat has achieved a perfect 10/10 rating!
+            </p>
+        </div>
+
+        <h2 data-i18n-key="dashboard-overview">Dashboard Overview</h2>
+        <div class="dashboard-overview">
+            <div class="metric-card">
+                <h3 data-i18n-key="total-requests">Total Requests</h3>
+                <p class="value" id="totalRequests">248</p>
+                <small style="color:var(--text-secondary);">12% vs last month</small>
+            </div>
+            <div class="metric-card">
+                <h3 data-i18n-key="completed">Completed</h3>
+                <p class="value" id="completedRequests">156</p>
+            </div>
+            <div class="metric-card">
+                <h3 data-i18n-key="in-progress">In Progress</h3>
+                <p class="value" id="inProgressRequests">67</p>
+            </div>
+            <div class="metric-card">
+                <h3 data-i18n-key="pending">Pending</h3>
+                <p class="value" id="pendingRequests">25</p>
+            </div>
+        </div>
+
+        <div class="charts-section">
+            <div class="chart-card">
+                <h2 data-i18n-key="avg-rating-title">⭐ Average Rating (Last 30 Days)</h2>
+                <div class="chart-container">
+                    <canvas id="ratingChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h2 data-i18n-key="top-issues-title">Top Issues by Category</h2>
+                <div class="chart-container" style="height: 100%; display: flex; align-items: center; justify-content: center;">
+                    <canvas id="categoryChart" style="max-height: 250px; max-width: 250px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="inbox-card">
+            <div class="inbox-header">
+                <h2 data-i18n-key="inbox-title">Village Request Inbox</h2>
+                <div class="inbox-tabs">
+                    <button class="active" onclick="filterRequests(this, 'all')" data-status-key="tab-all" data-i18n-key="tab-all">All</button>
+                    <button onclick="filterRequests(this, 'pending')" data-status-key="tab-pending" data-i18n-key="tab-pending">Pending</button>
+                    <button onclick="filterRequests(this, 'in-work')" data-status-key="tab-inwork" data-i18n-key="tab-inwork">In Work</button>
+                    <button onclick="filterRequests(this, 'resolved')" data-status-key="tab-resolved" data-i18n-key="tab-resolved">Resolved</button>
+                </div>
+            </div>
+
+            <div id="requestList">
+                <div class="request-item border-high" data-status="pending">
+                    <div class="request-content">
+                        <h4 data-i18n-key="req1-title">Hand pump not working, needs repair</h4>
+                        <p data-i18n-key="req1-category">Rampur • Water & Sanitation</p>
+                        <div class="details">Oct 8, 2025 • Attachments</div>
+                        <button class="action-button action-start" onclick="handleAction(1, 'start')" data-i18n-key="action-start">Start Work</button>
+                    </div>
+                    <div class="request-actions">
+                        <span class="priority-badge priority-high" data-i18n-key="priority-high">High Priority</span>
+                        <small style="color:#dc3545; font-weight: 600;">5 days pending</small>
+                    </div>
+                </div>
+
+                <div class="request-item border-medium" data-status="in-work">
+                    <div class="request-content">
+                        <h4 data-i18n-key="req2-title">School needs new benches and desks</h4>
+                        <p data-i18n-key="req2-category">Sundarpur • Education</p>
+                        <div class="details">Oct 6, 2025</div>
+                        <button class="action-button action-mark" onclick="handleAction(2, 'resolve')" data-i18n-key="action-resolve">Mark Resolved</button>
+                    </div>
+                    <div class="request-actions">
+                        <span class="priority-badge priority-medium" data-i18n-key="priority-medium">Medium Priority</span>
+                        <small style="color:#ffc107; font-weight: 600;">In Work</small>
+                    </div>
+                </div>
+
+                <div class="request-item border-resolved" data-status="resolved">
+                    <div class="request-content">
+                        <h4 data-i18n-key="req3-title">Medical supplies needed at health center</h4>
+                        <p data-i18n-key="req3-category">Kishanganj • Healthcare</p>
+                        <div class="details">Oct 1, 2025</div>
+                        <button class="action-button action-update" onclick="handleAction(3, 'reopen')" data-i18n-key="action-reopen">Re-open Issue</button>
+                    </div>
+                    <div class="request-actions">
+                        <span class="priority-badge priority-resolved" data-i18n-key="priority-resolved">Resolved</span>
+                        <small style="color:#5cb85c; font-weight: 600;">Completed</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="rating-panel">
+            <h2 data-i18n-key="rating-panel-title">Rate Gram Panchayat Responsiveness</h2>
+            <p data-i18n-key="rating-panel-prompt">How would you rate the Gram Panchayat's response to your needs?</p>
+            <div class="stars-container" id="starsContainer">
+                <span class="star" data-value="1">★</span>
+                <span class="star" data-value="2">★</span>
+                <span class="star" data-value="3">★</span>
+                <span class="star" data-value="4">★</span>
+                <span class="star" data-value="5">★</span>
+                <span class="star" data-value="6">★</span>
+                <span class="star" data-value="7">★</span>
+                <span class="star" data-value="8">★</span>
+                <span class="star" data-value="9">☆</span>
+                <span class="star" data-value="10">☆</span>
+                <span style="font-size: 1rem; margin-left: 10px; align-self: center;" id="currentRating">8/10</span>
+            </div>
+            <button class="submit-rating-btn" onclick="submitRating()" data-i18n-key="submit-rating">Submit Rating</button>
+        </div>
+    </div>
+    
+    <button class="floating-chat-btn" id="floatingChatBtn" onclick="toggleChatbot()">
+        <i class="fas fa-robot"></i> </button>
+
+    <div class="chatbot-panel" id="chatbotPanel">
+        <div class="chat-header">
+            <span data-i18n-key="chat-header">Panchayat Helper Chatbot</span>
+            <button class="chat-close-btn" onclick="toggleChatbot()">✖</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-message-item bot" data-i18n-key="chat-greeting">
+                Hello! I'm your Panchayat Assistant. I can help you with scheme information and issue resolution steps. Click a chip to begin!
+                <div class="quick-actions" id="quickActions">
+                    </div>
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" data-i18n-placeholder-key="chat-input-placeholder" placeholder="Type your message...">
+            <button onclick="sendMessage(null, false)" data-i18n-key="chat-send-btn">Send</button>
+        </div>
+    </div>
+
+
+<script>
+    // --- 1. Localization/Language Translation Data ---
+    const translations = {
+        'en': {
+            'main-title': 'Gram Panchayat Admin',
+            'english-btn': 'English',
+            'hindi-btn': 'हिन्दी',
+            'congrats-text': 'Congratulations! **Adarsh Gram Status Achieved**\nYour Panchayat has achieved a perfect 10/10 rating!',
+            'dashboard-overview': 'Dashboard Overview',
+            'total-requests': 'Total Requests',
+            'completed': 'Completed',
+            'in-progress': 'In Progress',
+            'pending': 'Pending',
+            'avg-rating-title': '⭐ Average Rating (Last 30 Days)',
+            'top-issues-title': 'Top Issues by Category',
+            'inbox-title': 'Village Request Inbox',
+            'tab-all': 'All',
+            'tab-pending': 'Pending',
+            'tab-inwork': 'In Work',
+            'tab-resolved': 'Resolved',
+            'req1-title': 'Hand pump not working, needs repair',
+            'req1-category': 'Rampur • Water & Sanitation',
+            'req2-title': 'School needs new benches and desks',
+            'req2-category': 'Sundarpur • Education',
+            'req3-title': 'Medical supplies needed at health center',
+            'req3-category': 'Kishanganj • Healthcare',
+            'action-start': 'Start Work',
+            'action-resolve': 'Mark Resolved',
+            'action-reopen': 'Re-open Issue',
+            'priority-high': 'High Priority',
+            'priority-medium': 'Medium Priority',
+            'priority-resolved': 'Resolved',
+            'rating-panel-title': 'Rate Gram Panchayat Responsiveness',
+            'rating-panel-prompt': 'How would you rate the Gram Panchayat\'s response to your needs?',
+            'submit-rating': 'Submit Rating',
+            'chat-header': 'Panchayat Helper Chatbot',
+            'chat-greeting': 'Hello! I\'m your Panchayat Assistant. I can help you with scheme information and issue resolution steps. Click a chip to begin!',
+            'chat-send-btn': 'Send',
+            'chat-input-placeholder': 'Type your message...',
+            // New Action/Quick Chip Text
+            'action-audit': 'Run Audit on Requests',
+            'action-scheme': 'Check Scheme Eligibility',
+            'action-data': 'Get Performance Data',
+        },
+        'hi': {
+            'main-title': 'ग्राम पंचायत प्रशासन',
+            'english-btn': 'English',
+            'hindi-btn': 'हिन्दी',
+            'congrats-text': 'बधाई हो! **आदर्श ग्राम दर्जा प्राप्त**\nआपकी पंचायत ने 10/10 की परफेक्ट रेटिंग हासिल की है!',
+            'dashboard-overview': 'डैशबोर्ड अवलोकन',
+            'total-requests': 'कुल अनुरोध',
+            'completed': 'पूर्ण किए गए',
+            'in-progress': 'प्रगति पर',
+            'pending': 'लंबित',
+            'avg-rating-title': '⭐ औसत रेटिंग (पिछले 30 दिन)',
+            'top-issues-title': 'श्रेणी अनुसार शीर्ष समस्याएं',
+            'inbox-title': 'ग्राम अनुरोध इनबॉक्स',
+            'tab-all': 'सभी',
+            'tab-pending': 'लंबित',
+            'tab-inwork': 'कार्य में',
+            'tab-resolved': 'सुलझाए गए',
+            'req1-title': 'हैंड पंप खराब है, मरम्मत की आवश्यकता',
+            'req1-category': 'रामपुर • जल और स्वच्छता',
+            'req2-title': 'विद्यालय में नई बेंच और डेस्क की आवश्यकता',
+            'req2-category': 'सुंदरपुर • शिक्षा',
+            'req3-title': 'स्वास्थ्य केंद्र में चिकित्सीय सामग्री की आवश्यकता',
+            'req3-category': 'किशनगंज • स्वास्थ्य',
+            'action-start': 'कार्य प्रारंभ करें',
+            'action-resolve': 'सुलझा चिह्नित करें',
+            'action-reopen': 'मुद्दा पुनः खोलें',
+            'priority-high': 'उच्च प्राथमिकता',
+            'priority-medium': 'मध्यम प्राथमिकता',
+            'priority-resolved': 'सुलझा हुआ',
+            'rating-panel-title': 'ग्राम पंचायत की प्रतिक्रिया का मूल्यांकन करें',
+            'rating-panel-prompt': 'आपकी आवश्यकताओं पर ग्राम पंचायत की प्रतिक्रिया को आप कैसे रेट करेंगे?',
+            'submit-rating': 'रेटिंग सबमिट करें',
+            'chat-header': 'पंचायत सहायक चैटबोट',
+            'chat-greeting': 'नमस्ते! मैं आपका पंचायत सहायक हूँ। मैं योजना की जानकारी और समस्या समाधान चरणों में आपकी सहायता कर सकता हूँ। शुरू करने के लिए एक चिप पर क्लिक करें!',
+            'chat-send-btn': 'भेजें',
+            'chat-input-placeholder': 'अपना संदेश लिखें...',
+            // New Action/Quick Chip Text
+            'action-audit': 'अनुरोधों पर ऑडिट चलाएँ',
+            'action-scheme': 'योजना की पात्रता जाँचें',
+            'action-data': 'प्रदर्शन डेटा प्राप्त करें',
+        }
+    };
+
+    let currentLang = 'en';
+
+    // --- 2. Core Functions ---
+
+    // Function to handle ALL text translation
+    function translatePage(lang) {
+        currentLang = lang;
+        const currentTranslation = translations[lang];
+
+        // 1. Update text content
+        document.querySelectorAll('[data-i18n-key]').forEach(element => {
+            const key = element.getAttribute('data-i18n-key');
+            if (currentTranslation[key]) {
+                // Handle bold text within the string using a simple replacement
+                let text = currentTranslation[key].replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                element.innerHTML = text.replace(/\n/g, '<br>');
+            }
+        });
+
+        // 2. Update placeholder text
+        document.querySelectorAll('[data-i18n-placeholder-key]').forEach(input => {
+            const key = input.getAttribute('data-i18n-placeholder-key');
+            if (currentTranslation[key]) {
+                input.setAttribute('placeholder', currentTranslation[key]);
+            }
+        });
+
+        // 3. Update active button class
+        document.querySelectorAll('.header-actions button[data-lang]').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-lang') === lang) {
+                btn.classList.add('active');
+            }
+        });
+
+        // 4. Re-draw charts to update labels (optional but good practice)
+        initCharts();
+
+        // 5. Re-render Quick Actions in Chatbot
+        renderQuickActions();
+    }
+
+    // --- 3. Chatbot Logic ---
+
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const quickActionsContainer = document.getElementById('quickActions');
+
+    // Function to append a message to the chat
+    function appendMessage(text, sender) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('chat-message-item', sender);
+        // Handle bold text from response strings
+        let content = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        messageDiv.innerHTML = content;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // AI Response Logic (Hackathon Demo Feature)
+    function getAiResponse(query) {
+        const lowerQuery = query.toLowerCase();
+
+        // Retrieve responses from the translations object
+        if (lowerQuery.includes('audit')) {
+            return translations[currentLang]['audit-response'] || "✅ **AUDIT RUN COMPLETE.** 3 requests marked 'Pending' are now flagged High Priority due to age. Automatically notified the District Coordinator. Next step: **Generate Procurement Request** for Ramapur water pump.";
+        } else if (lowerQuery.includes('scheme') || lowerQuery.includes('eligibility')) {
+            return translations[currentLang]['scheme-response'] || "ℹ️ **SCHEME CHECK:** Kishanganj Panchayat is 85% eligible for **Jal Jeevan Mission Grant** (Tier 2) based on current water scarcity index. Remaining 15% requires Geo-tagged progress photos. Do you want to **Create Task** to capture photos?";
+        } else if (lowerQuery.includes('data') || lowerQuery.includes('performance')) {
+            return translations[currentLang]['data-response'] || "📊 **PERFORMANCE DATA:** Average resolution time is 4 days, up 1 day this week. **Health** issues (15 total) have a 95% satisfaction rating, while **Education** issues (22 total) have only 78%. Recommendation: Focus on Education follow-ups.";
+        } else if (lowerQuery.includes('hello') || lowerQuery.includes('hi') || lowerQuery.includes('namaste')) {
+            return translations[currentLang]['chat-greeting'];
+        } else if (lowerQuery.includes('water') || lowerQuery.includes('pump')) {
+            return "The Hand Pump issue in Rampur is High Priority. Please confirm if the technician has been assigned. Use the **Run Audit** action to track it.";
+        } else {
+            return translations[currentLang]['fallback-response'] || "I'm sorry, I can only assist with **Audit**, **Scheme Eligibility**, and **Performance Data** demos right now. Please click a quick action chip above!";
+        }
+    }
+
+    // Function to handle both text input and quick action chips
+    function sendMessage(query, isChip = false) {
+        const text = isChip ? query : chatInput.value.trim();
+        if (text === '') return;
+
+        // 1. Format and display user message
+        const displayMessage = isChip ? (text.split(':')[1] || text).replace(/\b\w/g, c => c.toUpperCase()) : text;
+        appendMessage(displayMessage, 'user');
+
+        // 2. Clear input
+        if (!isChip) {
+            chatInput.value = '';
+        }
+        
+        // 3. Simulate AI Typing Delay
+        setTimeout(() => {
+            const response = getAiResponse(text);
+            appendMessage(response, 'bot');
+        }, 800);
+    }
+
+    function renderQuickActions() {
+        quickActionsContainer.innerHTML = ''; // Clear previous chips
+        const chips = [
+            { query: 'audit:requests', textKey: 'action-audit' },
+            { query: 'scheme:eligibility', textKey: 'action-scheme' },
+            { query: 'data:performance', textKey: 'action-data' },
+        ];
+
+        chips.forEach(chip => {
+            const button = document.createElement('button');
+            button.classList.add('quick-action-chip');
+            button.textContent = translations[currentLang][chip.textKey];
+            button.onclick = () => sendMessage(chip.query, true);
+            quickActionsContainer.appendChild(button);
+        });
+    }
+    
+    // NOTE: The toggle function now correctly manages the 'open' class
+    function toggleChatbot() {
+        const panel = document.getElementById('chatbotPanel');
+        panel.classList.toggle('open');
+        if (panel.classList.contains('open')) {
+            // Give focus to input when opening
+            chatInput.focus();
+        }
+    }
+
+
+    // --- 4. Dashboard Utility Functions ---
+
+    function toggleTheme() {
+        const html = document.documentElement;
+        const icon = document.getElementById('theme-icon');
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        html.setAttribute('data-theme', newTheme);
+        icon.textContent = newTheme === 'dark' ? '💡' : '🌙';
+        
+        // Re-initialize charts to update grid/text color
+        initCharts();
+    }
+
+    function filterRequests(button, status) {
+        const parent = button.closest('.inbox-tabs');
+        parent.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+
+        document.querySelectorAll('#requestList .request-item').forEach(item => {
+            if (status === 'all' || item.getAttribute('data-status') === status) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    function handleAction(id, action) {
+        alert(`${action.toUpperCase()} action triggered for Request ID: ${id}`);
+    }
+
+    // --- 5. Rating Component Logic ---
+
+    let userRating = 8;
+
+    function updateStars(rating) {
+        const stars = document.querySelectorAll('.star');
+        stars.forEach(star => {
+            const starValue = parseInt(star.getAttribute('data-value'));
+            star.innerHTML = starValue <= rating ? '★' : '☆';
+        });
+        document.getElementById('currentRating').textContent = `${rating}/10`;
+    }
+
+    function setupRating() {
+        const container = document.getElementById('starsContainer');
+        container.addEventListener('click', (e) => {
+            if (e.target.classList.contains('star')) {
+                userRating = parseInt(e.target.getAttribute('data-value'));
+                updateStars(userRating);
+            }
+        });
+        updateStars(userRating);
+    }
+
+    function submitRating() {
+        alert(`Thank you! Your rating of ${userRating}/10 has been submitted.`);
+    }
+
+    // --- 6. Chart Initialization ---
+
+    let ratingChartInstance, categoryChartInstance;
+
+    function initCharts() {
+        const theme = document.documentElement.getAttribute('data-theme');
+        const chartColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)';
+        const gridColor = theme === 'dark' ? 'rgba(60, 60, 80, 0.5)' : 'rgba(230, 230, 230, 0.8)';
+        
+        // Destroy existing instances to prevent conflicts on re-initialization
+        if (ratingChartInstance) ratingChartInstance.destroy();
+        if (categoryChartInstance) categoryChartInstance.destroy();
+
+        // --- Rating Chart (Line) ---
+        const ratingCtx = document.getElementById('ratingChart').getContext('2d');
+        ratingChartInstance = new Chart(ratingCtx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                datasets: [{
+                    label: translations[currentLang]['avg-rating-title'] || 'Average Rating',
+                    data: [8.5, 9.1, 9.0, 9.4],
+                    borderColor: '#5c62ec',
+                    backgroundColor: 'rgba(92, 98, 236, 0.2)',
+                    tension: 0.4,
+                    pointBackgroundColor: '#5c62ec'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        min: 7,
+                        max: 10,
+                        ticks: { color: chartColor },
+                        grid: { color: gridColor }
+                    },
+                    x: {
+                        ticks: { color: chartColor },
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // --- Category Chart (Doughnut) ---
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        categoryChartInstance = new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Water & Sanitation', 'Education', 'Healthcare', 'Roads/Infrastructure'],
+                datasets: [{
+                    data: [45, 25, 15, 15],
+                    backgroundColor: ['#4b89dc', '#5cb85c', '#dc3545', '#ffc107'],
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: chartColor
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += context.raw + '%';
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // --- 7. Initialization on Load ---
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Set up language buttons
+        document.getElementById('en-btn').addEventListener('click', () => translatePage('en'));
+        document.getElementById('hi-btn').addEventListener('click', () => translatePage('hi'));
+        
+        // Add language-specific responses for the AI demo
+        translations['en']['audit-response'] = "✅ **AUDIT RUN COMPLETE.** 3 requests marked 'Pending' are now flagged High Priority due to age. Automatically notified the District Coordinator. Next step: **Generate Procurement Request** for Ramapur water pump.";
+        translations['en']['scheme-response'] = "ℹ️ **SCHEME CHECK:** Kishanganj Panchayat is 85% eligible for **Jal Jeevan Mission Grant** (Tier 2) based on current water scarcity index. Remaining 15% requires Geo-tagged progress photos. Do you want to **Create Task** to capture photos?";
+        translations['en']['data-response'] = "📊 **PERFORMANCE DATA:** Average resolution time is 4 days, up 1 day this week. **Health** issues (15 total) have a 95% satisfaction rating, while **Education** issues (22 total) have only 78%. Recommendation: Focus on Education follow-ups.";
+        translations['en']['fallback-response'] = "I'm sorry, I can only assist with **Audit**, **Scheme Eligibility**, and **Performance Data** demos right now. Please click a quick action chip above!";
+
+        translations['hi']['audit-response'] = "✅ **ऑडिट पूर्ण।** 3 लंबित अनुरोधों को उनकी अवधि के कारण उच्च प्राथमिकता के रूप में चिह्नित किया गया है। जिला समन्वयक को स्वचालित रूप से सूचित किया गया। अगला कदम: रामपुर जल पंप के लिए **खरीद अनुरोध बनाएँ**।";
+        translations['hi']['scheme-response'] = "ℹ️ **योजना जाँच:** वर्तमान जल संकट सूचकांक के आधार पर किशनगंज पंचायत **जल जीवन मिशन अनुदान** (टियर 2) के लिए 85% पात्र है। शेष 15% के लिए जियो-टैग की गई प्रगति तस्वीरों की आवश्यकता है। क्या आप तस्वीरें लेने के लिए **कार्य बनाना** चाहते हैं?";
+        translations['hi']['data-response'] = "📊 **प्रदर्शन डेटा:** औसत समाधान समय 4 दिन है, जो इस सप्ताह 1 दिन बढ़ गया है। **स्वास्थ्य** संबंधी मुद्दों (कुल 15) की संतुष्टि रेटिंग 95% है, जबकि **शिक्षा** संबंधी मुद्दों (कुल 22) की केवल 78% है। सिफ़ारिश: शिक्षा फ़ॉलो-अप पर ध्यान दें।";
+        translations['hi']['fallback-response'] = "क्षमा करें, मैं अभी केवल **ऑडिट**, **योजना पात्रता**, और **प्रदर्शन डेटा** डेमो में ही सहायता कर सकता हूँ। कृपया ऊपर दिए गए त्वरित कार्रवाई चिप पर क्लिक करें!";
+        
+        // Initial setup
+        translatePage(currentLang);
+        initCharts();
+        setupRating();
+
+        // Event listener for chat input 'Enter' key
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent default form submission behavior (if it were a form)
+                sendMessage(null, false);
+            }
+        });
+    });
+
+</script>
+</body>
+</html>

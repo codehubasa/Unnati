@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n-key="auth-title">Unnati</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* --- CSS Variables for Theming (Dark Mode Default) --- */
+        :root {
+            --bg-primary: #1e1e2d;
+            --bg-secondary: #2a2a3e;
+            --bg-card: #2a2a3e;
+            --text-primary: #ffffff;
+            --text-secondary: #9999a9;
+            --link-color: #4b89dc;
+            --color-villager: #5cb85c; 
+            --color-panchayat: #ffc107;
+            --color-admin: #dc3545;
+            --border-color: #3c3c50;
+        }
+
+        /* --- Light Theme Overrides --- */
+        [data-theme="light"] {
+            --bg-primary: #f4f7f6;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #6c757d;
+            --link-color: #007bff;
+            --border-color: #e9ecef;
+        }
+
+        /* --- General Reset & Layout --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body {
+            background-color: var(--bg-primary); 
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            transition: background-color 0.3s;
+            overflow: hidden;
+        }
+        
+        /* --- Utility Controls (Theme/Language) --- */
+        .utility-controls {
+            position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 10;
+        }
+        .utility-controls button {
+            background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary);
+            padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 0.9rem;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .utility-controls button.active { background-color: var(--link-color); border-color: var(--link-color); color: white; }
+
+        /* --- Main Title & Subtitle --- */
+        .main-logo { font-size: 3rem; font-weight: 800; color: var(--link-color); margin-bottom: 5px; position: relative; z-index: 5; }
+        .main-subtitle { font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 50px; position: relative; z-index: 5; }
+
+        /* --- Role Selection Buttons --- */
+        .role-selection { display: flex; gap: 30px; margin-bottom: 40px; position: relative; z-index: 5; }
+        .role-btn {
+            background-color: var(--bg-card); border: 2px solid transparent; padding: 30px 40px;
+            border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); text-align: center;
+            cursor: pointer; transition: all 0.3s ease; width: 250px;
+        }
+        .role-btn:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); }
+        .role-btn h3 { font-size: 1.2rem; font-weight: 600; margin-top: 15px; }
+        .role-btn i { font-size: 2.5rem; transition: color 0.3s; }
+        .role-btn[data-role="villager"] i { color: var(--color-villager); }
+        .role-btn[data-role="panchayat"] i { color: var(--color-panchayat); }
+        .role-btn[data-role="admin"] i { color: var(--color-admin); }
+        .role-btn[data-role="villager"]:hover { border-color: var(--color-villager); }
+        .role-btn[data-role="panchayat"]:hover { border-color: var(--color-panchayat); }
+        .role-btn[data-role="admin"]:hover { border-color: var(--color-admin); }
+
+        /* --- Sign-In Form Area --- */
+        .auth-card-container {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            perspective: 1000px; width: 400px; height: 350px; pointer-events: none;
+            opacity: 0; transition: opacity 0.5s ease; z-index: 10;
+        }
+        .auth-card-container.active { opacity: 1; pointer-events: auto; }
+        .auth-card {
+            background-color: var(--bg-card); width: 100%; height: 100%; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); padding: 30px; position: absolute;
+            text-align: center; transform-style: preserve-3d; transition: transform 0.6s;
+        }
+        .auth-card:not(.visible) { transform: rotateY(90deg); }
+        .auth-card.visible { transform: rotateY(0deg); }
+
+        /* --- Form Styles --- */
+        .auth-card h2 { font-size: 1.6rem; margin-bottom: 25px; font-weight: 700; }
+        .auth-form { display: flex; flex-direction: column; gap: 15px; }
+        .auth-form input {
+            width: 100%; padding: 12px; border: 1px solid var(--border-color);
+            border-radius: 6px; background-color: var(--bg-secondary);
+            color: var(--text-primary); font-size: 1rem;
+        }
+        .auth-form input::placeholder { color: var(--text-secondary); opacity: 0.7; }
+        .auth-form button {
+            color: white; padding: 12px; border: none; border-radius: 6px; font-weight: 600;
+            font-size: 1.1rem; cursor: pointer; transition: background-color 0.2s;
+        }
+        #form-villager h2 { color: var(--color-villager); }
+        #form-panchayat h2 { color: var(--color-panchayat); }
+        #form-admin h2 { color: var(--color-admin); }
+        #form-villager button { background-color: var(--color-villager); }
+        #form-panchayat button { background-color: var(--color-panchayat); color: var(--bg-primary);}
+        #form-admin button { background-color: var(--color-admin); }
+        #form-villager button:hover { background-color: #4CAF50; }
+        #form-panchayat button:hover { background-color: #e6b300; }
+        #form-admin button:hover { background-color: #b02a37; }
+
+        .back-btn {
+            position: absolute; top: 15px; left: 15px; background: none; border: none;
+            color: var(--text-secondary); font-size: 1.5rem; cursor: pointer; transition: color 0.2s; z-index: 10;
+        }
+        .back-btn:hover { color: var(--link-color); }
+        .forgot-link {
+            font-size: 0.9rem; color: var(--text-secondary); text-decoration: none; margin-top: 5px; display: block;
+        }
+        .forgot-link:hover { color: var(--link-color); }
+
+    </style>
+</head>
+<body>
+
+    <div class="utility-controls">
+        <button id="en-btn" class="active" data-lang="en">EN</button>
+        <button id="hi-btn" data-lang="hi">HI</button>
+        <button id="theme-toggle" onclick="toggleTheme()">
+            <i class="fas fa-lightbulb" id="theme-icon"></i>
+        </button>
+    </div>
+
+    <h1 class="main-logo">Unnati</h1>
+    <p class="main-subtitle" data-i18n-key="system-tagline">Integrated Gram Panchayat & District Administration System</p>
+
+
+    <div class="role-selection" id="roleSelectionView">
+        <div class="role-btn" data-role="villager" onclick="showLoginForm('villager')">
+            <i class="fas fa-users"></i>
+            <h3 data-i18n-key="villager-title">Villager Sign-In</h3>
+        </div>
+        <div class="role-btn" data-role="panchayat" onclick="showLoginForm('panchayat')">
+            <i class="fas fa-handshake"></i>
+            <h3 data-i18n-key="gp-title">Panchayat Official Sign-In</h3>
+        </div>
+        <div class="role-btn" data-role="admin" onclick="showLoginForm('admin')">
+            <i class="fas fa-user-shield"></i>
+            <h3 data-i18n-key="admin-title">Govt Admin Sign-In</h3>
+        </div>
+    </div>
+
+    <div class="auth-card-container" id="authContainer">
+        
+        <button class="back-btn" onclick="showRoleSelection()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+
+        <div class="auth-card" id="form-villager">
+            <h2 data-i18n-key="villager-title">Villager Sign-In</h2>
+            <form class="auth-form" onsubmit="handleLogin(event, 'villager')">
+                <input type="text" data-i18n-placeholder-key="placeholder-a" placeholder="Aadhaar ID / Mobile No." required>
+                <input type="password" data-i18n-placeholder-key="placeholder-b" placeholder="Password / OTP" required>
+                <button type="submit" data-i18n-key="btn-villager">Access Citizen Services</button>
+                <a href="#" class="forgot-link" data-i18n-key="forgot-password">Forgot Password?</a>
+            </form>
+        </div>
+
+        <div class="auth-card" id="form-panchayat">
+            <h2 data-i18n-key="gp-title">Panchayat Official Sign-In</h2>
+            <form class="auth-form" onsubmit="handleLogin(event, 'panchayat')">
+                <input type="text" data-i18n-placeholder-key="placeholder-c" placeholder="GP Code / Official ID" required>
+                <input type="password" data-i18n-placeholder-key="placeholder-b" placeholder="Password / OTP" required>
+                <button type="submit" data-i18n-key="btn-gp">Access Work Management</button>
+                <a href="#" class="forgot-link" data-i18n-key="forgot-password">Forgot Password?</a>
+            </form>
+        </div>
+
+        <div class="auth-card" id="form-admin">
+            <h2 data-i18n-key="admin-title">Govt Admin Sign-In</h2>
+            <form class="auth-form" onsubmit="handleLogin(event, 'admin')">
+                <input type="text" data-i18n-placeholder-key="placeholder-d" placeholder="District Code / Admin ID" required>
+                <input type="password" data-i18n-placeholder-key="placeholder-b" placeholder="Password / OTP" required>
+                <button type="submit" data-i18n-key="btn-admin">Access Performance Dashboard</button>
+                <a href="#" class="forgot-link" data-i18n-key="forgot-password">Forgot Password?</a>
+            </form>
+        </div>
+    </div>
+
+
+<script>
+    let currentLang = 'en';
+    const authContainer = document.getElementById('authContainer');
+    const roleSelectionView = document.getElementById('roleSelectionView');
+    
+    // --- 1. Localization/Language Translation Data ---
+    const translations = {
+        'en': {
+            'auth-title': 'Unnati',
+            'system-tagline': 'Integrated Gram Panchayat & District Administration System',
+            'villager-title': 'Villager Sign-In',
+            'gp-title': 'Panchayat Official Sign-In',
+            'admin-title': 'Govt Admin Sign-In',
+            'placeholder-a': 'Aadhaar ID / Mobile No.',
+            'placeholder-b': 'Password / OTP',
+            'placeholder-c': 'GP Code / Official ID',
+            'placeholder-d': 'District Code / Admin ID',
+            'btn-villager': 'Access Citizen Services',
+            'btn-gp': 'Access Work Management',
+            'btn-admin': 'Access Performance Dashboard',
+            'forgot-password': 'Forgot Password?',
+            'login-success': 'Login successful for: ',
+            'login-failed': 'Login failed. Please check your credentials.',
+        },
+        'hi': {
+            'auth-title': 'उन्नति: बहु-भूमिका लॉग-इन',
+            'system-tagline': 'एकीकृत ग्राम पंचायत और जिला प्रशासन प्रणाली',
+            'villager-title': 'ग्रामवासी लॉग-इन',
+            'gp-title': 'पंचायत अधिकारी लॉग-इन',
+            'admin-title': 'सरकारी प्रशासक लॉग-इन',
+            'placeholder-a': 'आधार आईडी / मोबाइल नंबर',
+            'placeholder-b': 'पासवर्ड / ओटीपी',
+            'placeholder-c': 'जीपी कोड / आधिकारिक आईडी',
+            'placeholder-d': 'जिला कोड / प्रशासक आईडी',
+            'btn-villager': 'नागरिक सेवाओं तक पहुंचें',
+            'btn-gp': 'कार्य प्रबंधन तक पहुंचें',
+            'btn-admin': 'प्रदर्शन डैशबोर्ड तक पहुंचें',
+            'forgot-password': 'पासवर्ड भूल गए?',
+            'login-success': 'लॉग-इन सफल: ',
+            'login-failed': 'लॉग-इन असफल। कृपया अपनी क्रेडेंशियल जांचें।',
+        }
+    };
+
+    // --- 2. View/UX Logic ---
+
+    function showLoginForm(role) {
+        roleSelectionView.style.display = 'none';
+        document.querySelectorAll('.auth-card').forEach(card => {
+            card.classList.remove('visible');
+            card.style.transform = 'rotateY(90deg)';
+        });
+        authContainer.classList.add('active');
+        const targetCard = document.getElementById(`form-${role}`);
+        setTimeout(() => {
+            targetCard.classList.add('visible');
+            targetCard.style.transform = 'rotateY(0deg)';
+        }, 100); 
+    }
+
+    function showRoleSelection() {
+        authContainer.classList.remove('active');
+        document.querySelectorAll('.auth-card').forEach(card => {
+            card.classList.remove('visible');
+            card.style.transform = 'rotateY(90deg)';
+        });
+        roleSelectionView.style.display = 'flex';
+    }
+
+
+    // --- 3. Utility Functions ---
+
+    function translatePage(lang) {
+        currentLang = lang;
+        const currentTranslation = translations[lang];
+
+        document.querySelectorAll('[data-i18n-key]').forEach(element => {
+            const key = element.getAttribute('data-i18n-key');
+            if (currentTranslation[key]) {
+                element.textContent = currentTranslation[key];
+            }
+        });
+        document.querySelector('title').textContent = currentTranslation['auth-title'];
+
+        document.querySelectorAll('[data-i18n-placeholder-key]').forEach(input => {
+            const key = input.getAttribute('data-i18n-placeholder-key');
+            if (currentTranslation[key]) {
+                input.setAttribute('placeholder', currentTranslation[key]);
+            }
+        });
+
+        document.querySelectorAll('.utility-controls button[data-lang]').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-lang') === lang) {
+                btn.classList.add('active');
+            }
+        });
+    }
+    
+    function toggleTheme() {
+        const html = document.documentElement;
+        const icon = document.getElementById('theme-icon');
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        html.setAttribute('data-theme', newTheme);
+        icon.className = newTheme === 'dark' ? 'fas fa-lightbulb' : 'fas fa-moon';
+    }
+
+    function handleLogin(event, role) {
+        event.preventDefault(); 
+        
+        const successMessage = translations[currentLang]['login-success'];
+        
+        if (role === 'admin') {
+            alert(successMessage + role.toUpperCase() + ". Redirecting to Performance Dashboard...");
+            // *** ADMIN REDIRECT ***
+            window.location.href = 'Admin.html'; 
+            
+        } else if (role === 'panchayat') {
+            alert(successMessage + role.toUpperCase() + ". Redirecting to Work Management Dashboard...");
+            // *** PANCHAYAT REDIRECT ***
+            window.location.href = 'panchayet-index.html'; 
+            
+        } else if (role === 'villager') {
+            alert(successMessage + role.toUpperCase() + ". Accessing Citizen Portal (Demo).");
+            window.location.href = 'villager.html';
+        
+        } else {
+             alert(translations[currentLang]['login-failed']);
+        }
+    }
+
+    // --- 4. Initialization on Load ---
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('en-btn').addEventListener('click', () => translatePage('en'));
+        document.getElementById('hi-btn').addEventListener('click', () => translatePage('hi'));
+        translatePage(currentLang);
+    });
+
+</script>
+</body>
+</html>
