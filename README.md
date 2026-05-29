@@ -9,7 +9,7 @@
 
 🌐 Unnati
 
-🚀 A Data-Driven Gram Panchayat Governance Platform
+🚀  Data-Driven Gram Panchayat Governance Platform
 
 Unnati is a scalable civic-tech platform that digitizes rural governance by connecting citizens, Panchayat officials, and government administrators through a unified, data-driven system.
 ________________________________________
