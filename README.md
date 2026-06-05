@@ -13,7 +13,7 @@
 <img width="1860" height="840" alt="Screenshot 2026-04-14 145835" src="https://github.com/user-attachments/assets/7dd576dc-da45-4f69-a975-9eb0a80384fc" />
 
 
-🌐 Unnat
+🌐 Unnati
 
 🚀  A Data-Driven Gram Panchayat Governance Platform
 
